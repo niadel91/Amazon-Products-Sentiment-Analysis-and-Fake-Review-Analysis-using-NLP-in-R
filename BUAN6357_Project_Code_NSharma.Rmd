@@ -1,0 +1,346 @@
+---
+title: "Amazon Product Reviews - Sentiment Analysis and Fake Genuine Review Analysis"
+author: "Niharika Sharma"
+date: "November 20, 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Executive Summary
+The Objective of this study is to learn how different statistical NLP techniques can be used to analyze the Consumer Behaviour(Sentiment Analysis) and to check whether the consumer is real(Authenticity of Consumer Review Analysis).
+
+My objective is not to classify each review as either positive or negative as I am more focussed on learning the different sentiments involved in the reviews for a product. This is why I have not used Supervised Machine Learning Algorithms.
+
+There are two parts of this Study -
+1. Sentiment Analysis
+2. Fake Review Analysis
+
+Sentiment Analysis focusses on determining whether the product has positive or negative or mixed reviews in general. It does not focus on defining each review as either negative or positive as I believe that the Sentiment Analysis is more beneficial if we try to analyze the consumer sentiments associated with a product and not focus on ananlyzing whether a product review was posotive or negative.
+
+Fake Review Analysis focusses more on analysizing consumer behaviour when it comes to writing reviews. From a business stand point, identifying fake users is more beneficial rather than identifying fake reviews because we can remove or block the users so that no more fake reviews get added to any products.
+
+
+## Data Upload
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries}
+pacman::p_load(e1071, tidyverse, caret, rmarkdown, corrplot, readxl, ModelMetrics,quanteda,tidytext ,dplyr,ggplot2,dplyr,topicmodels,tm,sentimentr,lexRankr,wordcloud,lubridate,syuzhet,scales,reshape2,gmodels ) 
+theme_set(theme_classic())
+```
+
+```{r Data}
+initial_data <- read_csv("Data_Amazon.csv")
+```
+
+
+## Popularity of Amazon Products, in General
+
+```{r Data Data_Manipulation1}
+head(data.frame(sort(table(initial_data$reviews.rating),decreasing = TRUE)))
+```
+
+
+As we can see that most of the products fall under Satisfied(Rating - 4& 5) and Neutral(Rating - 3 ) so we can say that Amazon Products have a good reputation in general.
+
+
+
+## Top 5 Most Bought Amazon Products
+
+```{r Data_Manipulation2}
+
+head(data.frame(sort(table(initial_data$name),decreasing = TRUE)))
+```
+
+
+## Checking Ratings for most bought product - Amazon Echo Show Alexa - 7" Screen
+
+```{r Data_Alexa}
+
+alexa7 <- filter(initial_data,name=='Amazon Echo Show Alexa-enabled Bluetooth Speaker with 7" Screen')
+
+data.frame(sort(table(alexa7$reviews.rating),decreasing = TRUE))
+
+```
+
+Most of the people are very satisfied with 7 inch Echo
+
+
+## 5 Least Bought Amazon Products
+
+```{r Data_Manipulation3}
+
+head(data.frame(sort(table(initial_data$name))))
+```
+
+## Checking Ratings for least bought product - Amazon Fire TV 4K
+
+```{r Data_FireTV}
+
+FireTV <- filter(initial_data,name=='Amazon Fire TV with 4K Ultra HD and Alexa Voice Remote (Pendant Design) | Streaming Media Player')
+
+data.frame(sort(table(FireTV$reviews.rating),decreasing = TRUE))
+
+```
+
+Fire TV is the least bought product but it still has a rating of 5
+
+
+
+## Topic Modeling for Echo Alexa 7 inch
+
+```{r Alexa7_LDA}
+
+dtm <- dfm(alexa7$reviews.text, remove_punct=TRUE, tolower=TRUE, remove=stopwords("english"))
+
+
+topic_dtm <- convert(dtm, to="topicmodels")
+
+set.seed(1)
+lda_model<- topicmodels::LDA(topic_dtm,method = "Gibbs", k=5)
+terms(lda_model,5)
+```
+
+
+## Bar Plot of most used words for Echo Alexa 7-inch
+
+```{r Alexa7_corpus}
+# corpus conversion of the dataset
+corpus_alexa <- Corpus(VectorSource(alexa7$reviews.text))
+#inspect(corpus_alexa)
+
+# cleaning the corpus
+corpus_alexa <- tm_map(corpus_alexa,tolower)
+corpus_alexa <- tm_map(corpus_alexa,removePunctuation)
+#inspect(corpus_alexa)
+
+# removes stopwords
+cleanset <- tm_map(corpus_alexa,removeWords,stopwords('english'))
+
+
+# remove the obviously common words
+cleanset <- tm_map(cleanset, removeWords, c('alexa','devices','anyone','amazon','echo'))
+
+# removes extra whitespace
+cleanset <- tm_map(cleanset, stripWhitespace)
+
+# creating a term document matrix
+tdm <- DocumentTermMatrix(cleanset)
+tdm <- as.matrix(tdm)
+tdm[1:10,1:10]
+
+# How many times does a word appear in term document matrix
+count <- colSums(tdm)
+count <- subset(count, count>=20)
+count
+barplot(count, las=2, col=rainbow(20))
+
+```
+
+## Word Cloud for Echo Alexa 7-inch
+
+```{r Word_Cloud}
+
+count <- sort(count, decreasing = TRUE)
+set.seed(1)
+
+wordcloud(words = names(count), freq = count, max.words = 100, random.order = F, min.freq = 5, colors = brewer.pal(8, 'Dark2'))
+
+```
+
+## Sentiment Analysis for Most Bought Product - Amazon Echo Alexa 7 inch
+
+```{r sentiments_Echo}
+alexa7_text <- iconv(alexa7$reviews.text, to="utf-8")
+s <- get_nrc_sentiment(alexa7_text)
+head(s)
+
+barplot(colSums(s), las=2, col=rainbow(10), ylab="Frequency", main="Sentiments for Echo Alexa 7 inch")
+
+```
+
+The reviews for Amazon Echo Alexa 7-inch remain positive in general.
+
+
+## Sentiment Analysis for Least Bought Product - Amazon Fire TV 4K
+
+```{r sentiments_Fire}
+FireTV_text <- iconv(FireTV$reviews.text, to="utf-8")
+s <- get_nrc_sentiment(FireTV_text)
+head(s)
+
+barplot(colSums(s), las=2, col=rainbow(10), ylab="Frequency", main="Sentiments for Fire TV 4K")
+
+```
+
+
+## Sentiment Analysis for All the Amazon Products in general
+
+```{r sentiments_All}
+reviews_text <- iconv(initial_data$reviews.text, to="utf-8")
+s <- get_nrc_sentiment(reviews_text)
+head(s)
+
+barplot(colSums(s), las=2, col=rainbow(10), ylab="Frequency", main="Sentiments for Amazon Products")
+
+```
+
+## Sentiments Analysis Conclusion:
+1. We were right in anticipating that the Amazon Products in general are very good.
+2. Both the most bought product - Amazon Echo Alexa 7 inch and the least bought product - Fire TV 4K have positive sentiments associated as per the text reviews.
+
+
+## Extra Notes :
+
+## Problem of differentiating between "good" and "not good"
+
+```{r Notes1_good_vs_notgood}
+
+bing <- get_sentiments("bing")
+
+sentiment("I am very good at drawing.")
+
+sentiment("I am not very good at drawing.")
+
+
+```
+As we can see that it gives a positive result for a sentence with "good" and a negative result for the sentence having "not good" in its contents. Using the library 'sentimentr' in such cases can solve the problem where "not" is considered a neutral word and not a negative word.
+
+## To get an average score for the sentence.
+
+```{r Notes2_Average_Score}
+
+sentiment_by('I am very good at drawing.', by = NULL)
+sentiment_by('I am not very good at drawing.', by = NULL)
+
+
+```
+
+'sentiment_by' calculated the average score for the whole sentence. This helps when we want to understand the tone of the sentence and the word count in a sentence shouldn't have much impact.
+We can say that it scales the sentiment of the sentence.
+
+
+# Fake/Genuine Review Analysis
+
+
+We will first take a look at all the people who have the most number of reviews in the data, i.e, the people having more than 10 reviews for Amazon Products.
+
+The people who have bought these many products and written these many reviews are either:
+
+1. Influencers - They need to buy a lot of products and genuinely provide reviews on Social Media and ecommerce websites.
+
+2. People who buy a lot of gifts.
+
+3. Chatbots writing a number of reviews in a loop using one username at a time.
+
+
+```{r Fake_data}
+
+head(initial_data)
+
+
+head(data.frame(sort(table(initial_data$reviews.username),decreasing = TRUE)),10)
+
+fake_data <- subset(initial_data, reviews.username %in% names(which(table(reviews.username) >= 10)))
+
+sort(table(fake_data$reviews.username),decreasing = TRUE)
+
+# Checking for how many distinct products, the username has written a review
+
+a <-  fake_data %>%
+      group_by(reviews.username) %>%
+      summarise(n_distinct(name))
+
+a
+
+```
+
+These people have written a lot of reviews for different unique products.
+
+Let us check how many unique products are there in this data.
+
+```{r Fake_data_1}
+fake_data%>%summarise(n_distinct(name))
+
+```
+
+There are 21 unique products in the dataset
+
+
+```{r Fake_data_2}
+head(data.frame(sort(table(fake_data$name),decreasing = TRUE)))
+
+by_name_uname <- fake_data %>% group_by(reviews.username,name)
+by_un_n <- by_name_uname %>% summarise(n = n())
+by_un_n %>% arrange(desc(n))
+
+```
+
+As we can see that most of the users have provided more than one reviews for the same type of the Amazon Product. Even if the user bought the product more than once, there might not be a need to provide a review again as the product is listed as a different product even if the minutest details such as the color or the size is different.
+
+As the user "Mike" has provided a lot of reviews for two different types of Amazon Echo, we will take a look at the reviews from "Mike" for these two products - "Amazon Echo Show Alexa-enabled Bluetooth Speaker with 7" Screen" and "Amazon - Echo Plus w/ Built-In Hub - Silver".
+
+We are check the different sentiments used by the same user "Mike" for the same product.
+
+```{r Fake_Echo}
+Echo_Mike <- filter(fake_data,reviews.username=='Mike')
+
+Echo1_Mike <- filter(Echo_Mike,name=='Amazon Echo Show Alexa-enabled Bluetooth Speaker with 7" Screen')
+
+Echo2_Mike <- filter(Echo_Mike,name=='Amazon - Echo Plus w/ Built-In Hub - Silver')
+
+```
+
+This is full of both negative and positive emotions.
+
+
+
+Sentiments for the reviews made by Mike for Amazon Echo Show Alexa-enabled Bluetooth Speaker with 7
+
+```{r sentiments_Mike_Echo7}
+EM1 <- iconv(Echo1_Mike$reviews.text, to="utf-8")
+s <- get_nrc_sentiment(EM1)
+head(s)
+
+barplot(colSums(s), las=2, col=rainbow(10), ylab="Frequency", main="Mike's Sentiments for Echo Alexa Bluetooth Speaker 7 inch")
+
+```
+
+Sentiments for the reviews made by Mike for Amazon - Echo Plus w/ Built-In Hub - Silver
+
+```{r sentiments_Mike_EchoHub}
+EM2 <- iconv(Echo2_Mike$reviews.text, to="utf-8")
+s <- get_nrc_sentiment(EM2)
+head(s)
+
+barplot(colSums(s), las=2, col=rainbow(10), ylab="Frequency", main="Mike's Sentiments for Echo Built-in Hub - Silver")
+
+```
+
+THis is full of only positive reviews.
+
+Let's explore the dataset further.
+```{r head_Echo7_Mike}
+
+table(Echo1_Mike$reviews.text,Echo1_Mike$dateAdded)
+
+sort(table(Echo1_Mike$reviews.text),decreasing = TRUE)
+
+sort(table(Echo1_Mike$dateAdded),decreasing = TRUE)
+
+```
+
+After looking at the data for the Echo 7 inch for Mike's reviews, we see that most of the reviews were updated on the same dates and also most of the reviews are duplicates. And most of the ratings are a 4 or a 5. So we can say that Mike might be either a bot or is gaining some incentive by posting so many reviews. Influencers usually provide one very detailed review and don't spam the product with reviews.
+
+## Conclusion of Fake Reviews Analysis
+The Objective of this Project is not to classify the reviews as fake or genuine but to identify the behavioural patterns of users which might be posting fake reviews. It is very difficult to classify one review independently as either fake or not. It is more beneficial to track one username because if it is identified as a bot then it is useful not just for one product but can be helpful for other products as well.
+
+### Fin
+
+
+
+
