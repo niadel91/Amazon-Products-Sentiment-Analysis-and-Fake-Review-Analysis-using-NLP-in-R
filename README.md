@@ -5,11 +5,11 @@ Sentiment Analysis and Fake Review Analysis of Amazon Products using NLP with R
 
 The Objective of this study is to learn how diﬀerent statistical NLP techniques can be used to analyze the Consumer Behaviour(Sentiment Analysis) and to check whether the consumer is real(Authenticity of Consumer Review Analysis).
 
-MyobjectiveisnottoclassifyeachreviewaseitherpositiveornegativeasIammorefocussedonlearningthe diﬀerent sentiments involved in the reviews for a product. This is why I have not used Supervised Machine Learning Algorithms.
+My objective is not to classify each review as either positive or negative as I am more focussed on learning the diﬀerent sentiments involved in the reviews for a product. This is why I have not used Supervised Machine Learning Algorithms.
 
 There are two parts of this Study - 1. Sentiment Analysis 2. Fake Review Analysis 
 
-SentimentAnalysisfocussesondeterminingwhethertheproducthaspositiveornegativeormixedreviewsin general. ItdoesnotfocusondeﬁningeachreviewaseithernegativeorpositiveasIbelievethattheSentiment Analysis is more beneﬁcial if we try to analyze the consumer sentiments associated with a product and not focus on ananlyzing whether a product review was posotive or negative.
+Sentiment Analysis focusses on determining whether the product has positive or negative or mixed reviews in general. It does not focus on deﬁning each review as either negative or positive as I believe that the Sentiment Analysis is more beneﬁcial if we try to analyze the consumer sentiments associated with a product and not focus on ananlyzing whether a product review was posotive or negative.
 
 Fake Review Analysis focusses more on analysizing consumer behaviour when it comes to writing reviews. From a business stand point, identifying fake users is more beneﬁcial rather than identifying fake reviews because we can remove or block the users so that no more fake reviews get added to any products.
 
