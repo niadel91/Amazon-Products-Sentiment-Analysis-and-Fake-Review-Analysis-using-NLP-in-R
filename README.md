@@ -20,4 +20,4 @@ Fake Review Analysis focusses more on analysizing consumer behaviour when it com
 
 ## Conclusion of Fake Reviews Analysis:
 
-The Objective of this Project is not to classify the reviews as fake or genuine but to identify the behavioural patternsofuserswhichmightbepostingfakereviews. Itisverydiﬃculttoclassifyonereviewindependently as either fake or not. It is more beneﬁcial to track one username because if it is identiﬁed as a bot then it is useful not just for one product but can be helpful for other products as well.
+The Objective of this Project is not to classify the reviews as fake or genuine but to identify the behavioural patterns of users which might be posting fake reviews. It is very diﬃcult to classify one review independently as either fake or not. It is more beneﬁcial to track one username because if it is identiﬁed as a bot then it is useful not just for one product but can be helpful for other products as well.
